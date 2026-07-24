@@ -74,15 +74,13 @@ function wordCount(value: string) {
 export default function Home() {
   const [project, setProject] = useState<Project>(starter);
   const [document, setDocument] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [showSettings, setShowSettings] = useState(false);
+  const [remaining, setRemaining] = useState(3);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const raw = localStorage.getItem("briefly-project");
-      const savedKey = sessionStorage.getItem("briefly-deepseek-key");
       if (raw) {
         try {
           const saved = JSON.parse(raw);
@@ -92,9 +90,19 @@ export default function Home() {
           localStorage.removeItem("briefly-project");
         }
       }
-      if (savedKey) setApiKey(savedKey);
     }, 0);
     return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/generate", { signal: controller.signal })
+      .then(async (response) => {
+        const result = await response.json();
+        if (response.ok) setRemaining(result.remaining);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -118,20 +126,14 @@ export default function Home() {
     setProject((current) => ({ ...current, [field]: value }));
   }
 
-  function saveKey() {
-    sessionStorage.setItem("briefly-deepseek-key", apiKey);
-    setShowSettings(false);
-  }
-
   async function generate() {
     setError("");
     if (!project.idea.trim() || !project.problem.trim()) {
       setError("Add a product idea and the problem it solves first.");
       return;
     }
-    if (!apiKey.trim()) {
-      setShowSettings(true);
-      setError("Connect your DeepSeek API key to generate a PRD.");
+    if (remaining <= 0) {
+      setError("You have used all three free PRDs.");
       return;
     }
 
@@ -140,9 +142,10 @@ export default function Home() {
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...project, apiKey }),
+        body: JSON.stringify(project),
       });
       const result = await response.json();
+      if (typeof result.remaining === "number") setRemaining(result.remaining);
       if (!response.ok) throw new Error(result.error || "DeepSeek could not generate the PRD.");
       setDocument(result.document);
     } catch (caught) {
@@ -180,9 +183,7 @@ export default function Home() {
         </a>
         <div className="top-actions">
           <span className="save-status"><span className="status-dot" />Saved locally</span>
-          <button className="ghost-button" onClick={() => setShowSettings(true)}>
-            <span aria-hidden>⚙</span> DeepSeek
-          </button>
+          <span className="usage-pill"><b>{remaining}</b> free PRDs left</span>
           <button className="dark-button" onClick={download} disabled={!document}>
             Export <span aria-hidden>↓</span>
           </button>
@@ -238,12 +239,16 @@ export default function Home() {
           </div>
 
           {error && <p className="error" role="alert">{error}</p>}
-          <button className="generate-button" onClick={generate} disabled={isGenerating}>
+          <button className="generate-button" onClick={generate} disabled={isGenerating || remaining <= 0}>
             <span className="spark" aria-hidden>✦</span>
-            {isGenerating ? "DeepSeek is drafting…" : "Generate my PRD"}
+            {isGenerating
+              ? "DeepSeek is drafting…"
+              : remaining > 0
+                ? "Generate my PRD"
+                : "Free limit reached"}
             {!isGenerating && <span aria-hidden>→</span>}
           </button>
-          <p className="key-note">Your API key stays in this browser session and is never saved with your draft.</p>
+          <p className="key-note">Every visitor can generate up to three PRDs for free.</p>
         </aside>
 
         <section className="document-panel">
@@ -309,25 +314,8 @@ export default function Home() {
       <footer>
         <a className="brand footer-brand" href="#"><span className="brand-mark">B</span><span>Briefly</span></a>
         <p>Write less. Decide better.</p>
-        <span>Powered by your DeepSeek key</span>
+        <span>Powered by DeepSeek</span>
       </footer>
-
-      {showSettings && (
-        <div className="modal-backdrop" role="presentation" onMouseDown={() => setShowSettings(false)}>
-          <section className="modal" role="dialog" aria-modal="true" aria-labelledby="settings-title" onMouseDown={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setShowSettings(false)} aria-label="Close">×</button>
-            <p className="eyebrow">AI CONNECTION</p>
-            <h2 id="settings-title">Connect DeepSeek</h2>
-            <p>Use your own API key to generate PRDs. Briefly keeps it only for this browser session.</p>
-            <label>
-              DeepSeek API key
-              <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-…" autoComplete="off" />
-            </label>
-            <button className="generate-button" onClick={saveKey} disabled={!apiKey.trim()}>Save connection</button>
-            <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noreferrer">Create a key at DeepSeek ↗</a>
-          </section>
-        </div>
-      )}
     </main>
   );
 }

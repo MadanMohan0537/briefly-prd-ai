@@ -45,6 +45,8 @@ button:disabled { cursor: not-allowed; opacity: .52; }
 .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sage); }
 .ghost-button, .dark-button { border: 1px solid var(--line); border-radius: 9px; padding: 9px 13px; background: transparent; color: var(--ink); }
 .dark-button { background: var(--ink); color: white; border-color: var(--ink); min-width: 96px; }
+.usage-pill { border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; color: var(--muted); background: var(--white); font-size: 12px; }
+.usage-pill b { color: var(--coral); margin-right: 3px; }
 
 .intro { max-width: 900px; margin: 72px auto 48px; text-align: center; padding: 0 24px; }
 .eyebrow, .step-label { color: var(--coral); font: 700 11px var(--font-geist-mono), monospace; letter-spacing: .15em; }
@@ -122,14 +124,6 @@ footer { display: flex; justify-content: space-between; align-items: center; pad
 .footer-brand { color: white; font-size: 20px; }
 .footer-brand .brand-mark { color: var(--ink); background: var(--coral); }
 
-.modal-backdrop { position: fixed; inset: 0; background: rgba(16,26,45,.62); z-index: 50; display: grid; place-items: center; padding: 20px; backdrop-filter: blur(5px); }
-.modal { width: min(440px, 100%); background: var(--white); border-radius: 16px; padding: 34px; position: relative; box-shadow: 0 30px 80px rgba(0,0,0,.25); }
-.modal-close { position: absolute; right: 18px; top: 14px; border: 0; background: none; font-size: 27px; color: var(--muted); }
-.modal h2 { font: 500 34px Georgia, serif; margin: 10px 0; }
-.modal > p:not(.eyebrow) { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
-.modal .generate-button { justify-content: center; margin-top: 8px; }
-.modal a { display: block; text-align: center; color: var(--muted); font-size: 11px; margin-top: 16px; }
-
 @media (max-width: 900px) {
   .save-status { display: none; }
   .workspace { grid-template-columns: 1fr; width: calc(100% - 24px); }
@@ -141,8 +135,7 @@ footer { display: flex; justify-content: space-between; align-items: center; pad
 @media (max-width: 560px) {
   .topbar { padding: 0 16px; }
   .brand { font-size: 20px; }
-  .ghost-button { width: 42px; font-size: 0; }
-  .ghost-button span { font-size: 16px; }
+  .usage-pill { font-size: 10px; padding: 7px 9px; }
   .dark-button { min-width: auto; }
   .intro { margin-top: 50px; }
   .intro h1 { font-size: 43px; }
