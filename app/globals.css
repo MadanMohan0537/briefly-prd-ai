@@ -8,6 +8,8 @@
   --coral: #ff6b4a;
   --sage: #9aaf9f;
   --line: #dcd7cc;
+  --font-geist-sans: "Segoe UI", Arial, sans-serif;
+  --font-geist-mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
 }
 
 * { box-sizing: border-box; }

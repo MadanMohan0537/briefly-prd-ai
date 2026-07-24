@@ -43,6 +43,12 @@ pnpm lint
 
 The project is configured for Cloudflare-compatible deployment through OpenAI Sites. No paid database, authentication provider, or storage service is required. Drafts use browser local storage.
 
+### Vercel
+
+The repository also includes a `vercel.json` override that uses the native
+Next.js build on Vercel. Import the GitHub repository and keep the detected
+framework set to **Next.js**. No custom output directory is required.
+
 ## Project structure
 
 ```text
