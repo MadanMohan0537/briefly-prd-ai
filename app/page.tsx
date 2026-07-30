@@ -242,7 +242,7 @@ export default function Home() {
           <button className="generate-button" onClick={generate} disabled={isGenerating || remaining <= 0}>
             <span className="spark" aria-hidden>✦</span>
             {isGenerating
-              ? "DeepSeek is drafting…"
+              ? "Your PRD is generating…"
               : remaining > 0
                 ? "Generate my PRD"
                 : "Free limit reached"}
