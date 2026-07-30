@@ -314,7 +314,6 @@ export default function Home() {
       <footer>
         <a className="brand footer-brand" href="#"><span className="brand-mark">B</span><span>Briefly</span></a>
         <p>Write less. Decide better.</p>
-        <span>Powered by DeepSeek</span>
       </footer>
     </main>
   );
