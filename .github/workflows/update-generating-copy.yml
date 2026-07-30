@@ -1,0 +1,25 @@
+name: Update generation copy
+
+on:
+  push:
+    paths:
+      - ".github/workflows/update-generating-copy.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  update-copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace provider-focused loading text
+        run: |
+          node -e "const fs=require('fs');const p='app/page.tsx';const s=fs.readFileSync(p,'utf8');const n=s.replace('DeepSeek is drafting…','Your PRD is generating…');if(n===s)process.exit(1);fs.writeFileSync(p,n)"
+      - name: Commit change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx
+          git commit -m "Use product-focused PRD generation message"
+          git push
