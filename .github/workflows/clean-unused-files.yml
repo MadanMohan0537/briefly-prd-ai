@@ -1,0 +1,45 @@
+name: Clean unused starter files
+
+on:
+  push:
+    paths:
+      - ".github/workflows/clean-unused-files.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.11.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          cache: pnpm
+      - name: Remove unused files and dependencies
+        run: |
+          rm -f app/chatgpt-auth.ts
+          rm -rf db drizzle examples
+          rm -f drizzle.config.ts
+          rm -f public/window.svg public/globe.svg public/file.svg
+          node - <<'NODE'
+          const fs = require("fs");
+          const path = "package.json";
+          const pkg = JSON.parse(fs.readFileSync(path, "utf8"));
+          delete pkg.scripts["db:generate"];
+          delete pkg.dependencies["drizzle-orm"];
+          delete pkg.devDependencies["drizzle-kit"];
+          fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + "\n");
+          NODE
+          pnpm install --lockfile-only --no-frozen-lockfile
+      - name: Commit cleanup
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove unused starter and database files"
+          git push
