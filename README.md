@@ -5,13 +5,19 @@
 </p>
 
 <p align="center">
-  <a href="https://portfolio.madanmohanlearning.workers.dev/"><img src="https://img.shields.io/badge/Live%20Demo-Available-brightgreen?style=flat-square" alt="Live Demo"></a>
+  <a href="https://briefly.madanmohanlearning.workers.dev/"><img src="https://img.shields.io/badge/Live%20Demo-Available-brightgreen?style=flat-square" alt="Live Demo"></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License"></a>
   <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square" alt="Next.js"></a>
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square" alt="React"></a>
   <a href="https://deepseek.com"><img src="https://img.shields.io/badge/AI%20Engine-DeepSeek%20V3-blueviolet?style=flat-square" alt="DeepSeek"></a>
   <a href="https://workers.cloudflare.com"><img src="https://img.shields.io/badge/Deployment-Cloudflare%20Workers-f38020?style=flat-square" alt="Cloudflare Workers"></a>
 </p>
+
+---
+
+## 🌐 Live Deployment
+
+**Briefly is live at:** https://briefly.madanmohanlearning.workers.dev/
 
 ---
 
