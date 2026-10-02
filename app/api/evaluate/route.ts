@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isPrdReview } from "../../lib/review-contract";
 
 export const runtime = "edge";
 
@@ -18,7 +19,10 @@ Return ONLY valid JSON matching this shape:
   "findings": [
     {"priority": "critical"|"important"|"optimization", "title": string, "missing": string, "suggestedText": string, "evidenceNeeded": string}
   ],
-  "openQuestions": [string]
+  "openQuestions": [string],
+  "decisionLedger": [
+    {"decision": string, "whyItMatters": string, "currentAssumption": string, "evidenceNeeded": string, "suggestedOwner": "product"|"design"|"engineering"|"data"|"legal_policy"|"cross_functional"}
+  ]
 }
 
 Use these review dimensions:
@@ -42,7 +46,7 @@ Rules:
 - A critical gap in fundamentals should prevent a "ready" result.
 - suggestedText must be write-ready but use explicit placeholders such as [baseline needed] when facts are unavailable.
 - evidenceNeeded should say what source would validate the claim; use "None" when no external evidence is required.
-- The goal is to improve the artifact before human review, never replace human approval.`;
+- Extract only material unresolved decisions into decisionLedger. Do not turn every open question into a decision.\n- currentAssumption must say "Not stated" when the PRD does not state one.\n- The goal is to improve the artifact before human review, never replace human approval.`;
 
 function extractJson(value: string) {
   const trimmed = value.trim().replace(/^\`\`\`json\s*/i, "").replace(/\`\`\`$/i, "").trim();
@@ -91,7 +95,9 @@ export async function POST(request: Request) {
     if (!content) return NextResponse.json({ error: "The evaluator returned an empty review." }, { status: 502 });
 
     try {
-      return NextResponse.json(extractJson(content));
+      const review = extractJson(content);
+      if (!isPrdReview(review)) throw new Error("INVALID_REVIEW_CONTRACT");
+      return NextResponse.json(review);
     } catch {
       return NextResponse.json({ error: "The evaluator returned an invalid scorecard. Please retry." }, { status: 502 });
     }
