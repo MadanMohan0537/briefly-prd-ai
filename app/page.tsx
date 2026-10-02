@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { PrdReview } from "./lib/review-contract";
 
 type Project = {
   title: string;
@@ -77,6 +78,9 @@ export default function Home() {
   const [remaining, setRemaining] = useState(3);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState<"draft" | "review" | "decisions">("draft");
+  const [review, setReview] = useState<PrdReview | null>(null);
+  const [isReviewing, setIsReviewing] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -155,6 +159,34 @@ export default function Home() {
     }
   }
 
+  async function reviewReadiness() {
+    setError("");
+    if (document.trim().length < 100) {
+      setError("Generate or paste a fuller PRD before requesting a readiness review.");
+      return;
+    }
+    setIsReviewing(true);
+    try {
+      const context = [
+        project.audience && `Target users: ${project.audience}`,
+        project.constraints && `Constraints: ${project.constraints}`,
+      ].filter(Boolean).join("\n");
+      const response = await fetch("/api/evaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ document, context }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "The PRD review could not be completed.");
+      setReview(result);
+      setMode("review");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "The PRD review could not be completed.");
+    } finally {
+      setIsReviewing(false);
+    }
+  }
+
   function download() {
     if (!document) return;
     const blob = new Blob([document], { type: "text/markdown" });
@@ -172,6 +204,8 @@ export default function Home() {
     setProject(starter);
     setDocument("");
     setError("");
+    setReview(null);
+    setMode("draft");
   }
 
   return (
@@ -255,22 +289,54 @@ export default function Home() {
           <div className="document-toolbar">
             <div>
               <span className="step-label">02</span>
-              <h2>Refine the document</h2>
+              <h2>{mode === "draft" ? "Refine the document" : mode === "review" ? "Review readiness" : "Decision ledger"}</h2>
             </div>
             <div className="document-meta">
               <span>{wordCount(document)} words</span>
-              <span className="quality"><i style={{ width: `${quality}%` }} /> Quality {quality}%</span>
+              <button className="review-button" onClick={reviewReadiness} disabled={!document || isReviewing}>
+                {isReviewing ? "Reviewing…" : "Review readiness"}
+              </button>
             </div>
           </div>
+          <div className="workspace-tabs" role="tablist" aria-label="PRD workspace modes">
+            {(["draft", "review", "decisions"] as const).map((tab) => (
+              <button key={tab} className={mode === tab ? "active" : ""} onClick={() => setMode(tab)} disabled={tab !== "draft" && !review}>
+                {tab === "draft" ? "Draft" : tab === "review" ? "Review" : "Decisions"}
+              </button>
+            ))}
+          </div>
 
-          {document ? (
+          {document && mode === "draft" ? (
             <textarea
               className="editor"
               aria-label="Product requirements document"
               value={document}
-              onChange={(e) => setDocument(e.target.value)}
+              onChange={(e) => { setDocument(e.target.value); setReview(null); }}
               spellCheck
             />
+          ) : review && mode === "review" ? (
+            <div className="review-view">
+              <div className={`readiness-card ${review.readiness}`}>
+                <span>{review.classification.type} · {review.classification.reviewDepth} review</span>
+                <h3>{review.readiness.replaceAll("_", " ")}</h3>
+                <p>{review.summary}</p>
+              </div>
+              <article className="start-here"><b>Start here</b><p>{review.startHere}</p></article>
+              <div className="dimension-list">
+                {review.dimensions.map((item) => <article key={item.name}><span className={`status-dot-large ${item.status}`} /><div><b>{item.name}</b><p>{item.assessment}</p></div></article>)}
+              </div>
+              <h3 className="review-section-title">Prioritized findings</h3>
+              <div className="finding-list">
+                {review.findings.map((item, index) => <article key={`${item.title}-${index}`}><span className={`priority ${item.priority}`}>{item.priority}</span><h4>{item.title}</h4><p>{item.missing}</p><details><summary>Suggested PRD text</summary><pre>{item.suggestedText}</pre><small>Evidence needed: {item.evidenceNeeded}</small></details></article>)}
+              </div>
+            </div>
+          ) : review && mode === "decisions" ? (
+            <div className="review-view">
+              <div className="decision-intro"><span className="step-label">BRIEFLY ORIGINAL</span><h3>Turn ambiguity into a queue.</h3><p>These are material decisions the team still needs to make. They are not AI approvals.</p></div>
+              <div className="decision-list">
+                {review.decisionLedger.length ? review.decisionLedger.map((item, index) => <article key={`${item.decision}-${index}`}><span>{item.suggestedOwner.replace("_", " ")}</span><h4>{item.decision}</h4><p><b>Why it matters:</b> {item.whyItMatters}</p><p><b>Current assumption:</b> {item.currentAssumption}</p><p><b>Evidence needed:</b> {item.evidenceNeeded}</p></article>) : <p>No material unresolved decisions were extracted from this review.</p>}
+              </div>
+            </div>
           ) : (
             <div className="empty-state">
               <div className="paper-stack" aria-hidden>
