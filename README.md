@@ -7,13 +7,28 @@
 <p align="center">
   <a href="https://briefly.madanmohanlearning.workers.dev/"><img src="https://img.shields.io/badge/Live%20Demo-Available-brightgreen?style=flat-square" alt="Live Demo"></a>
   <a href="#license"><img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-15-black?style=flat-square" alt="Next.js"></a>
+  <a href="https://nextjs.org"><img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square" alt="Next.js"></a>
   <a href="https://react.dev"><img src="https://img.shields.io/badge/React-19-61dafb?style=flat-square" alt="React"></a>
   <a href="https://deepseek.com"><img src="https://img.shields.io/badge/AI%20Engine-DeepSeek%20V3-blueviolet?style=flat-square" alt="DeepSeek"></a>
   <a href="https://workers.cloudflare.com"><img src="https://img.shields.io/badge/Deployment-Cloudflare%20Workers-f38020?style=flat-square" alt="Cloudflare Workers"></a>
 </p>
 
 ---
+
+## What to review before using a draft
+
+Briefly produces a draft, not validated customer research. Check assumptions, unknown metric baselines, acceptance criteria and launch dependencies before sharing it as an approved PRD.
+
+The [generation route](app/api/generate/route.ts) requires a DeepSeek key and Redis configuration. Without them, generation or usage requests return a configuration error. The free-use counter is keyed to a salted hash of the client IP; it is not an authenticated per-user billing system. Configure `RATE_LIMIT_SALT` for your own deployment.
+
+### Development checks
+
+```bash
+pnpm run lint
+pnpm run test
+```
+
+The test script builds the app and runs the rendered-HTML tests. The current manifest uses Next.js 16.2.6, React 19.2.6 and Vinext; Node.js 22.13.0 or later is required. Model choice is configurable through `DEEPSEEK_MODEL`.
 
 ## 🌐 Live Deployment
 
@@ -40,7 +55,7 @@
 - **✏️ Real-Time Document Completeness Scoring:** Live quality score evaluates the thoroughness of the PRD draft as you refine it.
 - **💾 Local-First Drafts & Multi-Format Export:** Automatic local-storage draft saving with instant export to **Markdown (.md)**, **HTML**, and **Clipboard**.
 - **🛡️ Privacy & Rate Limiting:** Server-side DeepSeek key protection with privacy-preserving SHA-256 hashed rate limiting via **Upstash Redis**.
-- **🌐 Serverless & Edge Deployed:** Deployed as a full-stack Next.js application on **Cloudflare Workers** with zero cold starts.
+- **🌐 Serverless & Edge Deployed:** Deployed as a full-stack Next.js application on **Cloudflare Workers** using the Vinext build configuration.
 
 ---
 
@@ -52,7 +67,7 @@ flowchart LR
     B --> C[Edge API Proxy / DeepSeek Reasoning]
     C --> D[Structured PRD Generator]
     D --> E[Completeness Scoring & Live Editor]
-    E --> F[Export Markdown / Notion / Confluence]
+    E --> F[Export Markdown / HTML / Clipboard]
 ```
 
 ---
@@ -60,7 +75,7 @@ flowchart LR
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js:** v20+ or v22+
+- **Node.js:** 22.13.0 or later
 - **pnpm:** `npm install -g pnpm`
 - **DeepSeek API Key**
 - **Upstash Redis REST URL & Token** (for rate limiting)
@@ -91,10 +106,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 - **Framework:** Next.js (App Router), React
 - **Language:** TypeScript
-- **AI Model:** DeepSeek-V3 / DeepSeek-R1 API
+- **AI Model:** DeepSeek API (model configured with `DEEPSEEK_MODEL`)
 - **State & Storage:** Local-first browser storage + Upstash Redis
 - **Styling:** Vanilla CSS & PostCSS
-- **Deployment:** Cloudflare Workers (Vinext / OpenNext)
+- **Deployment:** Cloudflare Workers (Vinext)
 
 ---
 
